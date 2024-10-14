@@ -2,7 +2,7 @@
 //  UserProfileView.swift
 //  GitHubExplorer
 //
-//  Created by Siri on 14/10/24.
+//  Created by Abhishek on 14/10/24.
 //
 
 import SwiftUI
