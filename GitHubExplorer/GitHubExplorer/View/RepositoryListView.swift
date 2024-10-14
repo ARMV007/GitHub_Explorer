@@ -15,37 +15,47 @@ struct RepositoryListView: View {
     let onLoadMore: () -> Void
     
     var body: some View {
-        List {
-            ForEach(repositories, id: \.name) { repo in
-                VStack(alignment: .leading) {
-                    Text(repo.name)
-                        .font(.headline)
-                    if let description = repo.description {
-                        Text(description)
-                            .font(.subheadline)
-                    }
-                    HStack {
-                        Text("⭐️ \(repo.stargazers_count)")
-                        Spacer()
-                        Text("🍴 \(repo.forks_count)")
-                    }
-                    .font(.caption)
-                    .padding(.top, 5)
-                }
-            }
+        VStack(alignment: .leading) {
+            Text("Repositories (\(repositories.count)/\(total_repositories))")
+                .font(.headline)
+                .padding(.bottom, 10)
             
-            // Load more button for pagination
-            if repositories.count < total_repositories {
-                Button(action: {
-                    page += 1
-                    onLoadMore()
-                }) {
-                    Text("Load More")
-                        .foregroundColor(.blue)
+            LazyVStack(alignment: .leading) {
+                ForEach(repositories, id: \.name) { repo in
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(repo.name)
+                            .font(.headline)
+                        
+                        if let description = repo.description {
+                            Text(description)
+                                .font(.subheadline)
+                        }
+                        
+                        HStack {
+                            Text("⭐️ \(repo.stargazers_count)")
+                            Spacer()
+                            Text("🍴 \(repo.forks_count)")
+                        }
+                        .font(.caption)
+                    }
+                    .padding(.vertical)
+                    Divider()
                 }
-                .padding(.vertical)
+
+                // Load More Button for Pagination
+                if repositories.count < total_repositories {
+                    Button(action: {
+                        page += 1
+                        onLoadMore()
+                    }) {
+                        Text("Load More")
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.vertical)
+                }
             }
         }
+        .padding(.horizontal)
     }
 }
 

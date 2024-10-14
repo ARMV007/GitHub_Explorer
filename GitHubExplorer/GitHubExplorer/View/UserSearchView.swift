@@ -12,7 +12,8 @@ struct UserSearchView: View {
     @StateObject private var viewModel = UserSearchViewModel()
     @State private var username: String = ""
     @State private var page: Int = 1
-
+    @State private var isScrolledToBottom: Bool = false
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -36,32 +37,53 @@ struct UserSearchView: View {
                 }
                 .padding(.horizontal)
                 .padding(.top)
-                
+
                 if viewModel.isLoading {
                     ProgressView("Loading...")
                         .padding()
                 }
-                
+
                 if let errorMessage = viewModel.errorMessage, !errorMessage.isEmpty {
                     Text(errorMessage)
-                        .foregroundStyle(.red)
+                        .foregroundColor(.red)
                         .padding()
                 }
-                
+
                 if let user = viewModel.user {
-                    UserProfileView(user: user)
-                        .padding()
-                    
-                    RepositoryListView (
-                        repositories: viewModel.repositories,
-                        username: username,
-                        total_repositories: user.public_repos,
-                        page: $page,
-                        onLoadMore: {
-                            // Load next page
-                            viewModel.fetchRepositories(username: username, page: page, context:context)
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(alignment: .leading) {
+                                UserProfileView(user: user) // Pass the state
+
+                                RepositoryListView(
+                                    repositories: viewModel.repositories,
+                                    username: username,
+                                    total_repositories: user.public_repos,
+                                    page: $page,
+                                    onLoadMore: {
+                                        viewModel.fetchRepositories(username: username, page: page, context: context)
+                                    }
+                                )
+                                .background(
+                                    GeometryReader { geometry in
+                                        Color.clear.onAppear {
+                                            // Detect when scrolled to bottom
+                                            let contentOffset = geometry.frame(in: .global).minY
+                                            let screenHeight = UIScreen.main.bounds.height
+                                            withAnimation {
+                                                if contentOffset < screenHeight - 100 {
+                                                    isScrolledToBottom = true
+                                                } else {
+                                                    isScrolledToBottom = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                            .padding(.horizontal)
                         }
-                    )
+                    }
                 } else {
                     Spacer()
                 }
@@ -77,9 +99,6 @@ struct UserSearchView: View {
         return predicate.evaluate(with: trimmedUsername)
     }
 }
-
-
-
 
 #Preview {
     UserSearchView()
