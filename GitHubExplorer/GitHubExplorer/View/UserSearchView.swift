@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct UserSearchView: View {
+    @Environment(\.modelContext) private var context
     @StateObject private var viewModel = UserSearchViewModel()
     @State private var username: String = ""
     @State private var page: Int = 1
-    
+
     var body: some View {
         NavigationView {
             VStack {
@@ -21,8 +22,8 @@ struct UserSearchView: View {
                         
                     Button(action: {
                         let trimmedUsername = username.trimmingCharacters(in: .whitespaces)
-                        viewModel.fetchUser(username: trimmedUsername)
-                        page = 1 
+                        viewModel.fetchUser(username: trimmedUsername, context: context)
+                        page = 1
                     }) {
                         Text("Search")
                             .padding(.horizontal, 10)
@@ -58,7 +59,7 @@ struct UserSearchView: View {
                         page: $page,
                         onLoadMore: {
                             // Load next page
-                            viewModel.fetchRepositories(username: username, page: page)
+                            viewModel.fetchRepositories(username: username, page: page, context:context)
                         }
                     )
                 } else {

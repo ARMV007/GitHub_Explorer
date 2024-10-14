@@ -16,8 +16,6 @@ class UserSearchViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var hasMoreRepositories = true
 
-    @Environment(\.modelContext) private var context
-
     private var currentPage = 1
     private let perPage = 5 
     
@@ -27,18 +25,18 @@ class UserSearchViewModel: ObservableObject {
         repositories = []
     }
     
-    func fetchUser(username: String) {
+    func fetchUser(username: String, context: ModelContext) {
         reset()
         isLoading = true
         errorMessage = ""
-        if let cachedUser = fetchCachedUser(username: username) {
+        if let cachedUser = fetchCachedUser(username: username, context: context) {
             loadCachedUser(cachedUser)
         } else {
-            fetchUserFromAPI(username: username)
+            fetchUserFromAPI(username: username,context: context)
         }
     }
     
-    func fetchUserFromAPI(username: String) {
+    func fetchUserFromAPI(username: String, context: ModelContext) {
         let userUrl = URL(string: "https://api.github.com/users/\(username)")!
         
         URLSession.shared.dataTask(with: userUrl) { data, response, error in
@@ -62,8 +60,8 @@ class UserSearchViewModel: ObservableObject {
                     do {
                         let fetchedUser = try decoder.decode(GitHubUser.self, from: data)
                         self.user = fetchedUser
-                        self.cacheUser(fetchedUser)
-                        self.fetchRepositories(username: username, page: 1)
+                        self.cacheUser(fetchedUser, context: context)
+                        self.fetchRepositories(username: username, page: 1,context: context)
                     } catch {
                         self.errorMessage = "Failed to decode user data."
                     }
@@ -73,7 +71,7 @@ class UserSearchViewModel: ObservableObject {
     }
 
 
-    func fetchRepositories(username: String, page: Int) {
+    func fetchRepositories(username: String, page: Int, context: ModelContext) {
         let url = URL(string: "https://api.github.com/users/\(username)/repos?page=\(page)&per_page=\(perPage)")!
 
         URLSession.shared.dataTask(with: url) { data, response, error in
@@ -89,8 +87,8 @@ class UserSearchViewModel: ObservableObject {
                             self.hasMoreRepositories = false
                         }
 
-                        if let cachedUser = self.fetchCachedUser(username: username) {
-                            self.cacheRepositories(fetchedRepositories, for: cachedUser)
+                        if let cachedUser = self.fetchCachedUser(username: username, context: context) {
+                            self.cacheRepositories(fetchedRepositories, for: cachedUser, context: context)
                         }
                     } else {
                         self.errorMessage = "Failed to decode repository data."
@@ -102,14 +100,14 @@ class UserSearchViewModel: ObservableObject {
         }.resume()
     }
 
-    func loadMoreRepositories(username: String) {
+    func loadMoreRepositories(username: String,context: ModelContext) {
         if !isLoading && hasMoreRepositories {
             currentPage += 1
-            fetchRepositories(username: username, page: currentPage)
+            fetchRepositories(username: username, page: currentPage, context: context)
         }
     }
 
-    private func fetchCachedUser(username: String) -> CachedUser? {
+    private func fetchCachedUser(username: String, context: ModelContext) -> CachedUser? {
         let fetchRequest = FetchDescriptor<CachedUser>(predicate: #Predicate { $0.login == username })
         
         do {
@@ -121,7 +119,7 @@ class UserSearchViewModel: ObservableObject {
         }
     }
     
-    private func cacheUser(_ user: GitHubUser) {
+    private func cacheUser(_ user: GitHubUser, context: ModelContext) {
         let cachedUser = CachedUser(
             id: user.id, login: user.login,
             avatarURL: user.avatar_url,
@@ -138,7 +136,7 @@ class UserSearchViewModel: ObservableObject {
         }
     }
 
-    private func cacheRepositories(_ repositories: [GitHubRepository], for user: CachedUser) {
+    private func cacheRepositories(_ repositories: [GitHubRepository], for user: CachedUser, context: ModelContext) {
         repositories.forEach { repo in
             let cachedRepo = CachedRepository(
                 id: repo.id, name: repo.name,
