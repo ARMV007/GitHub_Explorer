@@ -9,8 +9,8 @@ import SwiftUI
 
 struct UserSearchView: View {
     @Environment(\.modelContext) private var context
-    @StateObject private var viewModel = UserSearchViewModel()
-    @State private var username: String = ""
+    @StateObject var viewModel = UserSearchViewModel()
+    @State var username: String = ""
     @State private var page: Int = 1
     @State private var isScrolledToBottom: Bool = false
     
