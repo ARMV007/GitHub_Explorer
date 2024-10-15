@@ -41,5 +41,14 @@ struct UserProfileView: View  {
 }
 
 #Preview {
-    UserProfileView(user: GitHubUser(id: 122, login: "@ARMV", avatar_url: Constants.randomImage, bio: "bio", followers: 7, public_repos: 0))
+    UserProfileView(
+        user: GitHubUser(
+            id: 122,
+            login: "@ARMV",
+            avatar_url: Constants.randomImage,
+            bio: "bio",
+            followers: 7,
+            public_repos: 0
+        )
+    )
 }

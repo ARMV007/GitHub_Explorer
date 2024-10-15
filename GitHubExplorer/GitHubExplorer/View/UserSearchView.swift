@@ -20,40 +20,39 @@ struct UserSearchView: View {
                 HStack {
                     TextField("Enter GitHub username", text: $username)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                        
-                    Button(action: {
-                        let trimmedUsername = username.trimmingCharacters(in: .whitespaces)
-                        viewModel.fetchUser(username: trimmedUsername, context: context)
-                        page = 1
-                    }) {
-                        Text("Search")
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(isUsernameValid() ? Color.blue : Color.gray)
-                            .foregroundColor(.white)
-                            .cornerRadius(5)
-                    }
-                    .disabled(!isUsernameValid())
+                        .padding(.vertical, 5)
+                        .padding(.trailing, 5)
+                    
+                    Text("Search")
+                        .modifier(SearchButtonStyle(isEnabled: isUsernameValid()) {
+                            let trimmedUsername = username.trimmingCharacters(in: .whitespaces)
+                            viewModel.fetchUser(username: trimmedUsername, context: context)
+                            page = 1
+                        })
                 }
                 .padding(.horizontal)
-                .padding(.top)
+                .padding(.top, 16)
 
                 if viewModel.isLoading {
                     ProgressView("Loading...")
                         .padding()
+                        .font(.headline)
                 }
 
                 if let errorMessage = viewModel.errorMessage, !errorMessage.isEmpty {
                     Text(errorMessage)
+                        .font(.body)
                         .foregroundColor(.red)
-                        .padding()
+                        .padding(.top, 10)
+                        .multilineTextAlignment(.center)
                 }
 
                 if let user = viewModel.user {
                     ScrollViewReader { proxy in
                         ScrollView {
-                            VStack(alignment: .leading) {
-                                UserProfileView(user: user) // Pass the state
+                            VStack(alignment: .leading, spacing: 20) {
+                                UserProfileView(user: user)
+                                    .padding(.bottom, 20)
 
                                 RepositoryListView(
                                     repositories: viewModel.repositories,
@@ -67,7 +66,6 @@ struct UserSearchView: View {
                                 .background(
                                     GeometryReader { geometry in
                                         Color.clear.onAppear {
-                                            // Detect when scrolled to bottom
                                             let contentOffset = geometry.frame(in: .global).minY
                                             let screenHeight = UIScreen.main.bounds.height
                                             withAnimation {
@@ -82,13 +80,20 @@ struct UserSearchView: View {
                                 )
                             }
                             .padding(.horizontal)
+                            .padding(.top, 20)
                         }
                     }
                 } else {
                     Spacer()
                 }
             }
-            .navigationTitle("User Search")
+            .navigationTitle("GitHub User Search")
+            .navigationBarTitleDisplayMode(.inline)
+            .padding(.bottom, 10)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                UIApplication.shared.endEditing()  // Dismiss the keyboard when tapping outside
+            }
         }
     }
     

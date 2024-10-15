@@ -60,6 +60,22 @@ struct RepositoryListView: View {
 }
 
 
-//#Preview {
-//    RepositoryListView(repository: GitHubRepository(id: 1, name: "Test", description: "Description", stargazers_count: 5, forks_count: 16))
-//}
+#Preview {
+    @Previewable @State var currentPage = 1
+    let mockRepositories: [GitHubRepository] = [
+        GitHubRepository(id: 1, name: "AwesomeRepo1", description: "This is an awesome repository", stargazers_count: 150, forks_count: 30),
+        GitHubRepository(id: 2, name: "AwesomeRepo2", description: "Another amazing repository", stargazers_count: 200, forks_count: 50),
+        GitHubRepository(id: 3, name: "CoolRepo", description: "Cool repo with great features", stargazers_count: 120, forks_count: 25),
+        GitHubRepository(id: 4, name: "OldRepo", description: nil, stargazers_count: 75, forks_count: 10)
+    ]
+    RepositoryListView(
+        repositories: mockRepositories,
+        username: "mockUser",
+        total_repositories: 4,
+        page: $currentPage,
+        onLoadMore: {
+            print("Loading more repositories...")
+            currentPage += 1
+        }
+    )
+}
